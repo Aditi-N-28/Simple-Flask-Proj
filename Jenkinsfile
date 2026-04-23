@@ -2,18 +2,18 @@ pipeline {
     agent any
     
     tools {
-        dockerTool 'docker'
+        dockerTool 'docker' 
     }
 
     stages {
         stage('Install & Test') {
             steps {
-                // This script block ensures the Docker tool is actually in the PATH
                 script {
-                    def dockerHome = tool name: 'docker', type: 'dockerTool'
-                    withEnv(["PATH+DOCKER=${dockerHome}/bin"]) {
-                        sh 'docker run --rm -v ${WORKSPACE}:/app -w /app python:3.9-slim sh -c "pip install -r requirements.txt"'
-                    }
+                    // This manually finds the path where Jenkins installed the Docker tool
+                    def dockerPath = tool name: 'docker', type: 'dockerTool'
+                    
+                    // We use the full path to the docker executable
+                    sh "${dockerPath}/bin/docker run --rm -v ${WORKSPACE}:/app -w /app python:3.9-slim sh -c 'pip install -r requirements.txt'"
                 }
             }
         }
@@ -21,10 +21,9 @@ pipeline {
         stage('Build Image') {
             steps {
                 script {
-                    def dockerHome = tool name: 'docker', type: 'dockerTool'
-                    withEnv(["PATH+DOCKER=${dockerHome}/bin"]) {
-                        sh 'docker build -t simple-flask-app:latest .'
-                    }
+                    def dockerPath = tool name: 'docker', type: 'dockerTool'
+                    
+                    sh "${dockerPath}/bin/docker build -t simple-flask-app:latest ."
                 }
             }
         }
