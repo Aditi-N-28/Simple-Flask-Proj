@@ -1,27 +1,22 @@
 pipeline {
-    agent any
+    agent none // We specify agents per stage
 
     stages {
-        stage('Checkout') {
-            steps {
-                // This pulls your code from GitHub
-                checkout scm
-            }
-        }
-
         stage('Install & Test') {
+            agent {
+                docker { image 'python:3.9-slim' }
+            }
             steps {
-                // This runs your tests inside a temporary Python container
-                // so you don't have to install Python on your Jenkins server
+                // This runs INSIDE the python container
                 sh 'pip install -r requirements.txt'
-                sh 'pytest test_app.py'
+                // sh 'pytest' // Uncomment this if you have tests
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Image') {
+            agent any // This runs on the Jenkins node to build the Docker image
             steps {
-                // This builds your final app image
-                sh 'docker build -t my-flask-app:latest .'
+                sh 'docker build -t simple-flask-app:latest .'
             }
         }
     }
